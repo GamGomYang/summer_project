@@ -295,6 +295,7 @@ void send_help_message(int socket_fd) {
         "/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)\n"
         "/game_list                 : 사용 가능한 게임 모드를 조회합니다.\n"
         "/ready                     : 게임 준비를 완료합니다.\n"
+        "/topic <주제>              : GPT를 통해 주제에 맞는 단어를 가져옵니다.\n"
         "/help                      : 도움말을 표시합니다.\n";
     send_message(socket_fd, help_msg);
     log_event("HELP 메시지 전송: %s", help_msg);
