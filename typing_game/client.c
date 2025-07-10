@@ -1,5 +1,5 @@
 // client.c
-// 컴파일 방법 : gcc client.c -o client -lncursesw -lpthread 
+// 컴파일 방법 : gcc client.c -o client -lncursesw -lpthread -lcurl -ljwon-c
 // 또는 makefile 이용 - make
 
 #define _XOPEN_SOURCE_EXTENDED // 한글깨짐현상 방지
