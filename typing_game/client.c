@@ -28,7 +28,7 @@
 #define SERVER_PORT 12345
 #define BUFFER_SIZE 2048
 #define INPUT_BUFFER_SIZE 1024 // 오버플로 방지
-#define LOG_FILE "client.log" // 에러 및 디버그 체크용 로그파일일
+#define LOG_FILE "client.log" // 에러 및 디버그 체크용 로그파일
 #define GPT_API_URL "https://api.openai.com/v1/chat/completions"
 //gpt api key 설정해야됨
 #define GPT_API_KEY "your-api-key-here" 
@@ -65,6 +65,10 @@ FILE *log_fp = NULL;
 int game_GAME_DURATION = 90;    // 게임 시간 (초 단위)
 #define GAME_MAX_WORD_LENGTH 30 // 단어의 최대 길이 증가
 #define GAME_MAX_WORDS 100
+
+// 게임용 창들
+WINDOW *game_win;      // 게임 메인 창
+WINDOW *game_input_win; // 게임용 입력창
 
 // 시작화면 애니메이션
 
@@ -875,6 +879,16 @@ void run_game(int game_duration) {
     refresh();
     curs_set(FALSE); // 게임 중에는 커서 숨기기
     game_define_colors();
+    
+    // 게임용 창들 생성
+    game_win = newwin(LINES - 3, COLS, 0, 0); // 게임 메인 창 (하단 3줄 제외)
+    game_input_win = newwin(3, COLS, LINES - 3, 0); // 게임용 입력창 (하단 3줄)
+    
+    // 입력창 초기화
+    box(game_input_win, 0, 0);
+    mvwprintw(game_input_win, 1, 1, "Enter Word: ");
+    wrefresh(game_input_win);
+    
     pthread_mutex_unlock(&window_mutex);
 
     // 플레이어 초기화
@@ -906,6 +920,8 @@ void run_game(int game_duration) {
     // 게임 종료 처리
     pthread_mutex_lock(&window_mutex);
     game_cleanup();
+    delwin(game_win);
+    delwin(game_input_win);
     clear();
     refresh();
     initialize_windows(); // 창 재초기화
@@ -936,9 +952,15 @@ void game_init_player() {
 
 // 플레이어 그리기 함수
 void game_draw_player() {
-    attron(COLOR_PAIR(4));
-    mvaddch(game_player.row, game_player.col, game_player.symbol);
-    attroff(COLOR_PAIR(4));
+    // 플레이어 위치를 게임 창 범위 내로 조정
+    int player_row = game_player.row;
+    if (player_row >= LINES - 3) {
+        player_row = LINES - 4; // 게임 창 내부로 조정
+    }
+    
+    wattron(game_win, COLOR_PAIR(4));
+    mvwaddch(game_win, player_row, game_player.col, game_player.symbol);
+    wattroff(game_win, COLOR_PAIR(4));
 }
 
 // 단어 추가 함수
@@ -994,16 +1016,15 @@ void game_update_words() {
 
     while (current != NULL) {
         // 기존 위치를 지움 (좌표 값 검사 추가)
-        if (current->row >= 0 && current->row < LINES && current->col >= 0 && current->col < COLS) {
-            move(current->row, current->col);
-            clrtoeol();
+        if (current->row >= 0 && current->row < LINES - 3 && current->col >= 0 && current->col < COLS) {
+            mvwprintw(game_win, current->row, current->col, "%*s", (int)strlen(current->word), "");
         }
 
         // 단어의 위치를 업데이트
         current->row += game_word_speed;
 
         // 화면을 벗어난 단어 처리
-        if (current->row >= LINES - 2) {
+        if (current->row >= LINES - 5) { // 게임 창 높이에 맞춰 조정
             // 점수 감점
             game_score -= strlen(current->word);
 
@@ -1031,18 +1052,18 @@ void game_draw_words() {
     GameWordNode *current = game_word_head;
 
     while (current != NULL) {
-        // 좌표 값 검사 추가
-        if (current->row >= 0 && current->row < LINES && current->col >= 0 && current->col < COLS - (int)strlen(current->word)) {
+        // 좌표 값 검사 추가 (게임 창 범위 내에서만)
+        if (current->row >= 0 && current->row < LINES - 3 && current->col >= 0 && current->col < COLS - (int)strlen(current->word)) {
             if (current->is_power_up) {
                 // 파워업 단어 색상
-                attron(COLOR_PAIR(3));
-                mvprintw(current->row, current->col, "%s", current->word);
-                attroff(COLOR_PAIR(3));
+                wattron(game_win, COLOR_PAIR(3));
+                mvwprintw(game_win, current->row, current->col, "%s", current->word);
+                wattroff(game_win, COLOR_PAIR(3));
             } else {
                 // 일반 단어 색상
-                attron(COLOR_PAIR(1));
-                mvprintw(current->row, current->col, "%s", current->word);
-                attroff(COLOR_PAIR(1));
+                wattron(game_win, COLOR_PAIR(1));
+                mvwprintw(game_win, current->row, current->col, "%s", current->word);
+                wattroff(game_win, COLOR_PAIR(1));
             }
         }
         current = current->next;
@@ -1063,10 +1084,9 @@ void game_word_Check(char *str) {
                 game_score += strlen(temp->word);
             }
 
-            // 화면에서 단어 지우기 (좌표 값 검사 추가)
-            if (temp->row >= 0 && temp->row < LINES && temp->col >= 0 && temp->col < COLS) {
-                move(temp->row, temp->col);
-                clrtoeol();
+            // 화면에서 단어 지우기 (게임 창 범위 내에서만)
+            if (temp->row >= 0 && temp->row < LINES - 3 && temp->col >= 0 && temp->col < COLS) {
+                mvwprintw(game_win, temp->row, temp->col, "%*s", (int)strlen(temp->word), "");
             }
 
             // 단어 제거
@@ -1096,7 +1116,7 @@ void game_word_Check(char *str) {
 
 // 사용자 입력 처리 함수
 void game_handle_input() {
-    int c = wgetch(input_win); // input_win에서 입력 받기
+    int c = wgetch(game_input_win); // game_input_win에서 입력 받기
     if (c == ERR)
         return;
 
@@ -1109,36 +1129,30 @@ void game_handle_input() {
         game_enter_position = 0;
 
         // 입력창 업데이트
-        werase(input_win);
-        box(input_win, 0, 0);
-        mvwprintw(input_win, 1, 1, "Enter Word: ");
-        wrefresh(input_win);
+        werase(game_input_win);
+        box(game_input_win, 0, 0);
+        mvwprintw(game_input_win, 1, 1, "Enter Word: ");
+        wrefresh(game_input_win);
     } else if (c == KEY_BACKSPACE || c == 127) {
         if (game_enter_position > 0) {
             game_enter_position--;
             game_typingText[game_enter_position] = '\0';
-            mvwprintw(input_win, 1, 13, "%s ", game_typingText);
-            wmove(input_win, 1, 13 + game_enter_position);
-            wrefresh(input_win);
+            mvwprintw(game_input_win, 1, 13, "%s ", game_typingText);
+            wmove(game_input_win, 1, 13 + game_enter_position);
+            wrefresh(game_input_win);
         }
     } else if (isprint(c) && game_enter_position < (int)(sizeof(game_typingText) - 1)) {
         game_typingText[game_enter_position++] = c;
         game_typingText[game_enter_position] = '\0';
-        mvwprintw(input_win, 1, 13, "%s", game_typingText);
-        wmove(input_win, 1, 13 + game_enter_position);
-        wrefresh(input_win);
+        mvwprintw(game_input_win, 1, 13, "%s", game_typingText);
+        wmove(game_input_win, 1, 13 + game_enter_position);
+        wrefresh(game_input_win);
     }
 }
 
 // 게임 쓰레드 함수
 void *game_game_thread_func(void *arg) {
     int frame = 0;
-
-    // 입력창 초기화
-    attron(COLOR_PAIR(5));
-    mvprintw(LINES - 1, 0, "Enter Word: ");
-    attroff(COLOR_PAIR(5));
-    refresh();
 
     while (!game_game_over) {
         frame++;
@@ -1157,13 +1171,13 @@ void *game_game_thread_func(void *arg) {
         // 플레이어 그리기
         game_draw_player();
 
-        // 점수 및 상태 표시
-        attron(COLOR_PAIR(5));
-        mvprintw(0, 0, "Score: %d  Level: %d", game_score, game_level);
-        attroff(COLOR_PAIR(5));
-
-        // 화면 업데이트
-        refresh();
+        // 점수 및 상태 표시 (게임 창에 표시)
+        pthread_mutex_lock(&window_mutex);
+        wattron(game_win, COLOR_PAIR(5));
+        mvwprintw(game_win, 0, 0, "Score: %d  Level: %d", game_score, game_level);
+        wattroff(game_win, COLOR_PAIR(5));
+        wrefresh(game_win);
+        pthread_mutex_unlock(&window_mutex);
 
         // 레벨 업 로직
         if (game_score >= game_level * 20 && game_level < 10) {
