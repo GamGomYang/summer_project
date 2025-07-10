@@ -58,6 +58,7 @@ char *id = 0;
 short sport = 0;
 int sock_fd = 0;
 FILE *log_file = NULL;
+
 void init_boards();
 void display_board(char board[GRID_SIZE][GRID_SIZE], int reveal, int start_y);
 void display_game_status();
@@ -82,7 +83,9 @@ void start_multiplayer();
 void clear_input_buffer();
 void handle_winch(int sig);
 
+// 에러체크 및 디버그용 로그작성 함수
 void write_log(const char *format, ...);
+
 void initGrid(Cell grid[GRID_SIZE][GRID_SIZE]);
 ssize_t readLine(int sockfd, char *buffer, size_t maxlen);
 void displayGrids(Cell own_grid[GRID_SIZE][GRID_SIZE], Cell opponent_grid[GRID_SIZE][GRID_SIZE], Cursor cursor, bool your_turn, bool attack_phase);
@@ -126,12 +129,12 @@ void display_board(char board[GRID_SIZE][GRID_SIZE], int reveal, int start_y) {
 
     // 화면 크기 검증
     if (COLS < board_width) {
-        mvprintw(start_y, 0, "Screen too narrow! Need at least %d columns", board_width);
+        mvprintw(start_y, 0, "화면이 너무 작습니다. %d 만큼 크게 해주세요", board_width);
         refresh();
         return;
     }
     if (LINES < start_y + board_height) {
-        mvprintw(start_y, 0, "Screen too short! Need at least %d lines", start_y + board_height);
+        mvprintw(start_y, 0, "화면이 너무 짧습니다. %d 만큼 크게 해주세요", start_y + board_height);
         refresh();
         return;
     }
@@ -417,6 +420,8 @@ void ai_attack(char board[GRID_SIZE][GRID_SIZE], Ship ships[], int difficulty) {
 
     if (difficulty == 1) {
         do {
+            //난수 생성 좌표 공격
+            //include<time.h>
             x = rand() % GRID_SIZE;
             y = rand() % GRID_SIZE;
             result = attack(x, y, board, ships);
@@ -1064,12 +1069,12 @@ void display_ascii_art_animation() {
 
     for (int i = 0; i < num_lines; i++) {
         mvprintw(start_y + i, start_x, "%s", ascii_art[i]);
-        refresh();      // Update the screen
-        usleep(200000); // Delay for 200ms
+        refresh();      // 화면 업데이트
+        usleep(200000); // 2초간 딜레이
     }
 
-    usleep(2000000); // 2-second pause
-    clear();         // Clear the screen for the next stage
+    usleep(2000000); // 2초간 딜레이
+    clear();         // 화면 초기화
 }
 
 void start_multiplayer() {
@@ -1162,6 +1167,8 @@ void start_multiplayer() {
 
 int main(int argc, char **argv) {
 
+
+    // 한국어 로케일
     setlocale(LC_ALL, "");
 
     setenv("LANG", "ko_KR.UTF-8", 1);
@@ -1301,4 +1308,3 @@ int main(int argc, char **argv) {
     endwin();
     return 0;
 }
-
