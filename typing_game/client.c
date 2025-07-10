@@ -17,6 +17,9 @@
 #include <unistd.h>
 #include <wchar.h>
 #include <wctype.h>
+//gpt 연동 단어 생성 헤더 파일
+#include <curl/curl.h>
+#include <json-c/json.h>
 
 // gcc client.c -o client -lncursesw -lpthread
 
@@ -25,6 +28,10 @@
 #define BUFFER_SIZE 2048
 #define INPUT_BUFFER_SIZE 1024 // 오버플로 방지
 #define LOG_FILE "client.log"
+#define GPT_API_URL "https://api.openai.com/v1/chat/completions"
+//gpt api key 설정해야됨
+#define GPT_API_KEY "your-api-key-here" 
+#define MAX_DYNAMIC_WORDS 30
 
 int sock = 0;
 pthread_t recv_thread;
@@ -128,7 +135,7 @@ void show_start_page() {
     refresh();
 }
 
-// 단어 데이터베이스
+// 기본 단어 데이터베이스
 const char *game_wordDB[] = {
     "apple", "banana", "cherry", "dragon", "elephant",
     "flower", "guitar", "house", "island", "jungle",
@@ -173,6 +180,11 @@ int game_word_speed = 1;             // 단어 하강 속도
 int game_word_interval = 2;          // 단어 생성 간격 (프레임 수)
 int game_frame_delay = 1000000;      // 프레임 대기 시간 (500ms -> 500,000 us)
 
+// 동적 단어 데이터베이스 관련 변수
+char *dynamic_wordDB[MAX_DYNAMIC_WORDS] = {NULL};
+int dynamic_wordDB_size = 0;
+int use_dynamic_words = 0; // 0: 기본 단어, 1: 동적 단어
+
 // 입력 처리 관련
 char game_typingText[GAME_MAX_WORD_LENGTH] = {0};
 int game_enter_position = 0;
@@ -192,6 +204,12 @@ void game_handle_input();
 void game_cleanup();
 void game_end_game_handler(int signum);
 void *game_game_thread_func(void *arg);
+
+// GPT API 관련 함수 선언
+size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp);
+int get_words_from_gpt(const char *topic);
+void free_dynamic_words();
+void load_dynamic_words(const char *topic);
 
 // 로그 기록 함수
 void log_event(const char *format, ...) {
@@ -238,6 +256,162 @@ void *game_thread_func(void *arg) {
     return NULL;
 }
 
+// GPT API 응답을 저장할 구조체
+struct MemoryStruct {
+    char *memory;
+    size_t size;
+};
+
+// CURL write callback 함수
+size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
+    size_t realsize = size * nmemb;
+    struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+
+    char *ptr = realloc(mem->memory, mem->size + realsize + 1);
+    if (!ptr) {
+        return 0;
+    }
+
+    mem->memory = ptr;
+    memcpy(&(mem->memory[mem->size]), contents, realsize);
+    mem->size += realsize;
+    mem->memory[mem->size] = 0;
+
+    return realsize;
+}
+
+// GPT API에서 단어 가져오기
+int get_words_from_gpt(const char *topic) {
+    CURL *curl;
+    CURLcode res;
+    struct MemoryStruct chunk;
+    chunk.memory = malloc(1);
+    chunk.size = 0;
+
+    curl = curl_easy_init();
+    if (!curl) {
+        free(chunk.memory);
+        return -1;
+    }
+
+    // JSON 요청 생성
+    struct json_object *json_obj = json_object_new_object();
+    struct json_object *messages_array = json_object_new_array();
+    struct json_object *message_obj = json_object_new_object();
+    
+    json_object_object_add(message_obj, "role", json_object_new_string("user"));
+    
+    char prompt[1024];
+    snprintf(prompt, sizeof(prompt), 
+        "다음 주제와 관련된 영어 단어 30개를 쉼표로 구분해서 알려줘. "
+        "단어는 3-10글자 사이여야 하고, 게임에서 사용할 수 있는 단순한 단어여야 해. "
+        "주제: %s", topic);
+    
+    json_object_object_add(message_obj, "content", json_object_new_string(prompt));
+    json_object_array_add(messages_array, message_obj);
+    json_object_object_add(json_obj, "messages", messages_array);
+    json_object_object_add(json_obj, "model", json_object_new_string("gpt-3.5-turbo"));
+    json_object_object_add(json_obj, "max_tokens", json_object_new_int(200));
+
+    const char *json_string = json_object_to_json_string(json_obj);
+
+    // 헤더 설정
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    char auth_header[256];
+    snprintf(auth_header, sizeof(auth_header), "Authorization: Bearer %s", GPT_API_KEY);
+    headers = curl_slist_append(headers, auth_header);
+
+    curl_easy_setopt(curl, CURLOPT_URL, GPT_API_URL);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_string);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        curl_easy_cleanup(curl);
+        curl_slist_free_all(headers);
+        json_object_put(json_obj);
+        free(chunk.memory);
+        return -1;
+    }
+
+    // JSON 응답 파싱
+    struct json_object *response_obj = json_tokener_parse(chunk.memory);
+    struct json_object *choices_array, *first_choice, *message, *content;
+    
+    if (json_object_object_get_ex(response_obj, "choices", &choices_array) &&
+        json_object_array_length(choices_array) > 0) {
+        
+        first_choice = json_object_array_get_idx(choices_array, 0);
+        if (json_object_object_get_ex(first_choice, "message", &message) &&
+            json_object_object_get_ex(message, "content", &content)) {
+            
+            const char *content_str = json_object_get_string(content);
+            
+            // 단어 파싱
+            char *content_copy = strdup(content_str);
+            char *token = strtok(content_copy, ",");
+            int word_count = 0;
+            
+            while (token != NULL && word_count < MAX_DYNAMIC_WORDS) {
+                // 공백 제거
+                while (*token == ' ' || *token == '\n' || *token == '\r') token++;
+                char *end = token + strlen(token) - 1;
+                while (end > token && (*end == ' ' || *end == '\n' || *end == '\r')) end--;
+                *(end + 1) = '\0';
+                
+                if (strlen(token) > 0) {
+                    dynamic_wordDB[word_count] = strdup(token);
+                    word_count++;
+                }
+                token = strtok(NULL, ",");
+            }
+            
+            dynamic_wordDB_size = word_count;
+            free(content_copy);
+        }
+    }
+
+    // 정리
+    curl_easy_cleanup(curl);
+    curl_slist_free_all(headers);
+    json_object_put(json_obj);
+    json_object_put(response_obj);
+    free(chunk.memory);
+
+    return dynamic_wordDB_size;
+}
+
+// 동적 단어 메모리 해제
+void free_dynamic_words() {
+    for (int i = 0; i < dynamic_wordDB_size; i++) {
+        if (dynamic_wordDB[i]) {
+            free(dynamic_wordDB[i]);
+            dynamic_wordDB[i] = NULL;
+        }
+    }
+    dynamic_wordDB_size = 0;
+}
+
+// 동적 단어 로드
+void load_dynamic_words(const char *topic) {
+    // 기존 동적 단어 해제
+    free_dynamic_words();
+    
+    // GPT에서 단어 가져오기
+    if (get_words_from_gpt(topic) > 0) {
+        use_dynamic_words = 1;
+        log_event("동적 단어 로드 완료: 주제=%s, 단어 수=%d\n", topic, dynamic_wordDB_size);
+    } else {
+        use_dynamic_words = 0;
+        log_event("동적 단어 로드 실패: 주제=%s\n", topic);
+    }
+}
+
 // 창 초기화 함수
 void initialize_windows() {
     // Start color mode
@@ -268,7 +442,7 @@ void initialize_windows() {
     box(input_win, 0, 0);
     wbkgd(input_win, COLOR_PAIR(1)); // 배경색 설정
     mvwprintw(input_win, 1, 1, "입력: ");
-    mvwprintw(input_win, 2, 1, "사용 가능한 명령어는 /help를 입력하세요.");
+            mvwprintw(input_win, 2, 1, "사용 가능한 명령어는 /help를 입력하세요. /topic <주제>로 단어를 가져올 수 있습니다.");
     wrefresh(input_win);
 }
 
@@ -450,6 +624,12 @@ void cleanup() {
     close(sock);
     endwin();
 
+    // 동적 단어 메모리 해제
+    free_dynamic_words();
+
+    // CURL 정리
+    curl_global_cleanup();
+
     // 로그 파일 닫기
     if (log_fp != NULL) {
         fclose(log_fp);
@@ -463,6 +643,9 @@ int main() {
 
     setlocale(LC_ALL, ""); // 로케일 설정
 
+    // CURL 초기화
+    curl_global_init(CURL_GLOBAL_ALL);
+    
     // 로그 파일 열기
     log_fp = fopen(LOG_FILE, "a");
     if (log_fp == NULL) {
@@ -533,7 +716,7 @@ int main() {
     werase(input_win);
     box(input_win, 0, 0);
     mvwprintw(input_win, 1, 1, "입력: ");
-    mvwprintw(input_win, 2, 1, "사용 가능한 명령어는 /help를 입력하세요.");
+    mvwprintw(input_win, 2, 1, "사용 가능한 명령어는 /help를 입력하세요. /topic <주제>로 단어를 가져올 수 있습니다.");
     wrefresh(input_win);
 
     // 리시브 스레드 생성
@@ -556,7 +739,7 @@ int main() {
         werase(input_win);
         box(input_win, 0, 0);
         mvwprintw(input_win, 1, 1, "입력: ");
-        mvwprintw(input_win, 3, 1, "사용 가능한 명령어는 /help를 입력하세요."); // 메뉴얼 안내
+        mvwprintw(input_win, 3, 1, "사용 가능한 명령어는 /help를 입력하세요. /topic <주제>로 단어를 가져올 수 있습니다."); // 메뉴얼 안내
         wrefresh(input_win);
         pthread_mutex_unlock(&window_mutex);
 
@@ -617,8 +800,31 @@ int main() {
 
         // 명령어 파싱 및 전송
         if (strncmp(input_buffer, "/", 1) == 0) {
-            // 명령어인 경우 그대로 전송
-            send_message_to_server(input_buffer);
+            // /topic 명령어 처리
+            if (strncmp(input_buffer, "/topic ", 7) == 0) {
+                char topic[256];
+                strcpy(topic, input_buffer + 7); // "/topic " 이후의 문자열
+                
+                pthread_mutex_lock(&window_mutex);
+                wprintw(chat_win, "주제 '%s'에 대한 단어를 GPT에서 가져오는 중...\n", topic);
+                wrefresh(chat_win);
+                pthread_mutex_unlock(&window_mutex);
+                
+                // GPT에서 단어 가져오기
+                load_dynamic_words(topic);
+                
+                pthread_mutex_lock(&window_mutex);
+                if (use_dynamic_words) {
+                    wprintw(chat_win, "동적 단어 로드 완료! %d개의 단어가 준비되었습니다.\n", dynamic_wordDB_size);
+                } else {
+                    wprintw(chat_win, "동적 단어 로드에 실패했습니다. 기본 단어를 사용합니다.\n");
+                }
+                wrefresh(chat_win);
+                pthread_mutex_unlock(&window_mutex);
+            } else {
+                // 다른 명령어인 경우 그대로 전송
+                send_message_to_server(input_buffer);
+            }
         } else if (strlen(input_buffer) > 0) {
             // 기본 채팅 메시지로 간주
             char chat_msg[BUFFER_SIZE];
@@ -743,7 +949,12 @@ void game_add_word() {
         is_power_up = 1;
         strcpy(new_word->word, game_powerUpDB[rand() % game_powerUpDB_size]);
     } else {
-        strcpy(new_word->word, game_wordDB[rand() % game_wordDB_size]);
+        // 동적 단어 사용 여부 확인
+        if (use_dynamic_words && dynamic_wordDB_size > 0) {
+            strcpy(new_word->word, dynamic_wordDB[rand() % dynamic_wordDB_size]);
+        } else {
+            strcpy(new_word->word, game_wordDB[rand() % game_wordDB_size]);
+        }
     }
     new_word->is_power_up = is_power_up;
 
