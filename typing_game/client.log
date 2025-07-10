@@ -1,0 +1,324 @@
+서버에 메시지 전송: �kim
+이름 전송 완료: �kim
+수신된 메시지: WELCOME �kim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/exit                      : 서버를 종료합니다.
+/help                      : 도움말을 표시합니다.
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+수신된 메시지: WELCOME kim
+
+서버에 메시지 전송: lee
+이름 전송 완료: lee
+수신된 메시지: WELCOME lee
+
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+수신된 메시지: WELCOME kim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/exit                      : 서버를 종료합니다.
+/help                      : 도움말을 표시합니다.
+사용자 입력: '/create_room'
+서버에 메시지 전송: /create_room
+수신된 메시지: ERROR 알 수 없는 명령어입니다.
+사용자 입력: '/create_room <room1>'
+서버에 메시지 전송: /create_room <room1>
+수신된 메시지: ROOM_CREATED 1 <room1>
+사용자 입력: '/list'
+서버에 메시지 전송: /list
+수신된 메시지: 현재 방 목록:
+방 ID: 1, 방 이름: <room1>, 게임 모드: 기본모드, 시간 제한: 90초
+사용자 입력: '/ready'
+서버에 메시지 전송: /ready
+수신된 메시지: GAME_STARTED
+게임 쓰레드 시작: 모드=산성비, 제한 시간=90초
+수신된 메시지: GAME_STARTED
+사용자 입력: 'djd'
+서버에 메시지 전송: /chat djd
+수신된 메시지: CHAT kim
+: djd
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+수신된 메시지: WELCOME kim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/exit                      : 서버를 종료합니다.
+/help                      : 도움말을 표시합니다.
+사용자 입력: '/create_room <1234>'
+서버에 메시지 전송: /create_room <1234>
+사용자 입력: '/list'
+서버에 메시지 전송: /list
+사용자 입력: 'dflsjdf'
+서버에 메시지 전송: /chat dflsjdf
+사용자 입력: 'sdflas'
+서버에 메시지 전송: /chat sdflas
+사용자 입력: '/sdf'
+서버에 메시지 전송: /sdf
+사용자 입력: 'df'
+서버에 메시지 전송: /chat df
+사용자 입력: '/list'
+서버에 메시지 전송: /list
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+수신된 메시지: WELCOME kim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/exit                      : 서버를 종료합니다.
+/help                      : 도움말을 표시합니다.
+사용자 입력: '/create_room <1234>'
+서버에 메시지 전송: /create_room <1234>
+사용자 입력: '/list'
+서버에 메시지 전송: /list
+사용자 입력: '/lsit'
+서버에 메시지 전송: /lsit
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+수신된 메시지: WELCOME kim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/exit                      : 서버를 종료합니다.
+/help                      : 도움말을 표시합니다.
+사용자 입력: '/create_room<room1>'
+서버에 메시지 전송: /create_room<room1>
+수신된 메시지: ERROR 알 수 없는 명령어입니다.
+사용자 입력: 'create_room <room1>'
+서버에 메시지 전송: /chat create_room <room1>
+수신된 메시지: ERROR 방에 먼저 참여해야 합니다.
+사용자 입력: '/list'
+서버에 메시지 전송: /list
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+사용자 입력: '/chat'
+서버에 메시지 전송: /chat
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+수신된 메시지: WELCOME kim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/exit                      : 서버를 종료합니다.
+/help                      : 도움말을 표시합니다.
+사용자 입력: '/create_room <1234>'
+서버에 메시지 전송: /create_room <1234>
+사용자 입력: 'dflksjdf'
+서버에 메시지 전송: /chat dflksjdf
+서버에 메시지 전송: kikim
+이름 전송 완료: kikim
+수신된 메시지: WELCOME kikim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/exit                      : 서버를 종료합니다.
+/help                      : 도움말을 표시합니다.
+사용자 입력: '/create_room <room1>'
+서버에 메시지 전송: /create_room <room1>
+수신된 메시지: ROOM_CREATED 1 <room1>
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+수신된 메시지: WELCOME kim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/exit                      : 서버를 종료합니다.
+/help                      : 도움말을 표시합니다.
+사용자 입력: '/create_room <room123>'
+서버에 메시지 전송: /create_room <room123>
+사용자 입력: '/list'
+서버에 메시지 전송: /list
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+수신된 메시지: WELCOME kim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/exit                      : 서버를 종료합니다.
+/help                      : 도움말을 표시합니다.
+사용자 입력: '/list'
+서버에 메시지 전송: /list
+서버에 메시지 전송: 
+이름 전송 완료: 
+수신된 메시지: WELCOME 
+
+사용자 입력: ''
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+수신된 메시지: WELCOME kim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/exit                      : 서버를 종료합니다.
+/help                      : 도움말을 표시합니다.
+사용자 입력: '/list'
+서버에 메시지 전송: /list
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+수신된 메시지: WELCOME kim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/help                      : 도움말을 표시합니다.
+사용자 입력: '/list'
+서버에 메시지 전송: /list
+수신된 메시지: 현재 사용 가능한 방이 없습니다.
+사용자 입력: '/create_room <room1>'
+서버에 메시지 전송: /create_room <room1>
+수신된 메시지: ROOM_CREATED 1 <room1>
+사용자 입력: '/list'
+서버에 메시지 전송: /list
+수신된 메시지: 현재 방 목록:
+방 ID: 1, 방 이름: <room1>, 게임 모드: 기본모드, 시간 제한: 90초
+서버에 메시지 전송: kikim
+이름 전송 완료: kikim
+수신된 메시지: WELCOME kikim
+
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+수신된 메시지: WELCOME kim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/help                      : 도움말을 표시합니다.
+사용자 입력: '/create_room <roomdf>'
+서버에 메시지 전송: /create_room <roomdf>
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+수신된 메시지: WELCOME kim
+
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+수신된 메시지: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/help                      : 도움말을 표시합니다.
+사용자 입력: '/list'
+서버에 메시지 전송: /list
+수신된 메시지: 현재 사용 가능한 방이 없습니다.
+사용자 입력: '/create_room <room1>'
+서버에 메시지 전송: /create_room <room1>
+수신된 메시지: ROOM_CREATED 1 <room1>
+사용자 입력: '/list'
+서버에 메시지 전송: /list
+수신된 메시지: 현재 방 목록:
+방 ID: 1, 방 이름: <room1>, 게임 모드: 기본모드, 시간 제한: 90초
+사용자 입력: '/ready'
+서버에 메시지 전송: /ready
+수신된 메시지: GAME_STARTED
+게임 쓰레드 시작: 모드=산성비, 제한 시간=90초
+수신된 메시지: GAME_STARTED
+사용자 입력: 'ffjfajd'
+서버에 메시지 전송: /chat ffjfajd
+수신된 메시지: CHAT kim
+: ffjfajd
+서버에 메시지 전송: kim
+이름 전송 완료: kim
+사용자 입력: '/help'
+서버에 메시지 전송: /help
+recv 실패: Connection reset by peer
