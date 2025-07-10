@@ -120,9 +120,9 @@ void init_boards() {
     }
 }
 void display_board(char board[GRID_SIZE][GRID_SIZE], int reveal, int start_y) {
-    // 보드 크기 계산 (각 셀: " X |" = 4칸)
-    int board_width = GRID_SIZE * 4 + 4; // 4는 행 번호와 구분자
-    int board_height = GRID_SIZE + 1;    // +1은 헤더 행
+    // 박스 형태로 보드 출력, 행/열 번호 1부터 시작
+    int board_width = GRID_SIZE * 4 + 5; // 각 셀: | X | = 4칸, 좌측 여백 포함
+    int board_height = GRID_SIZE * 2 + 2; // 각 행: 셀+구분선, 헤더+구분선
 
     // 화면 크기 검증
     if (COLS < board_width) {
@@ -130,38 +130,49 @@ void display_board(char board[GRID_SIZE][GRID_SIZE], int reveal, int start_y) {
         refresh();
         return;
     }
-
     if (LINES < start_y + board_height) {
         mvprintw(start_y, 0, "Screen too short! Need at least %d lines", start_y + board_height);
         refresh();
         return;
     }
 
-    // 중앙 정렬
     int start_x = (COLS - board_width) / 2;
-    if (start_x < 0)
-        start_x = 0;
+    if (start_x < 0) start_x = 0;
 
     attron(COLOR_PAIR(2));
 
-    // 컬럼 헤더 (숫자)
-    mvprintw(start_y, start_x + 4, "  ");
+    // 열 번호 (1~10)
+    mvprintw(start_y, start_x + 5, "");
     for (int i = 0; i < GRID_SIZE; i++) {
-        printw(" %2d ", i);
+        printw(" %2d ", i + 1);
+    }
+    // 윗줄 구분선
+    mvprintw(start_y + 1, start_x + 4, "+");
+    for (int i = 0; i < GRID_SIZE; i++) {
+        printw("---+");
     }
 
-    // 보드 내용
+    // 각 행 출력
     for (int i = 0; i < GRID_SIZE; i++) {
-        mvprintw(start_y + i + 1, start_x, "%2d |", i);
+        // 행 번호 (1~10)
+        mvprintw(start_y + 2 + i * 2, start_x, "%2d |", i + 1);
         for (int j = 0; j < GRID_SIZE; j++) {
             char c = board[i][j];
-            if (c == 'S' && !reveal) {
-                c = '~';
+            if (c == 'S' && !reveal) c = '~';
+            if (c == 'X') {
+                attron(COLOR_PAIR(2)); // 빨간색
+                printw(" %c |", c);
+                attroff(COLOR_PAIR(2));
+            } else {
+                printw(" %c |", c);
             }
-            printw(" %c |", c);
+        }
+        // 행 구분선
+        mvprintw(start_y + 3 + i * 2, start_x + 4, "+");
+        for (int k = 0; k < GRID_SIZE; k++) {
+            printw("---+");
         }
     }
-
     attroff(COLOR_PAIR(2));
     refresh();
 }
@@ -175,7 +186,7 @@ void display_game_status() {
 
     // 화면 크기 검증
     if (LINES < total_height + 2) {
-        mvprintw(LINES / 2, (COLS - 30) / 2, "화면이 너무 작아서 보드를 표시할 수 없다.");
+        mvprintw(LINES / 2, (COLS - 30) / 2, "화면이 너무 작아서 보드를 표시할 수 없습니다.");
         refresh();
         return;
     }
@@ -284,6 +295,9 @@ int place_ships(Ship ships[], char board[GRID_SIZE][GRID_SIZE]) {
                 continue;
             }
             noecho();
+            // 1부터 입력받으므로 내부 인덱스 변환
+            x -= 1;
+            y -= 1;
 
             if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) {
                 mvprintw(mid_y + GRID_SIZE + 5, mid_x, "좌표가 범위를 벗어났습니다.");
@@ -545,6 +559,9 @@ void start_singleplayer() {
             continue;
         }
         noecho();
+        // 1부터 입력받으므로 내부 인덱스 변환
+        x -= 1;
+        y -= 1;
 
         result = attack(x, y, enemy_board, enemy_ships);
         display_attack_result(result);
