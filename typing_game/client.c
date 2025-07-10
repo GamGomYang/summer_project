@@ -1,4 +1,6 @@
 // client.c
+// 컴파일 방법 : gcc client.c -o client -lncursesw -lpthread 
+// 또는 makefile 이용 - make
 
 #define _XOPEN_SOURCE_EXTENDED // 한글깨짐현상 방지
 
@@ -6,7 +8,7 @@
 #include <ctype.h> // 한글깨짐현상 방지
 #include <errno.h>
 #include <locale.h>
-#include <ncursesw/ncurses.h> // For wide-character support
+#include <ncursesw/ncurses.h> 
 #include <pthread.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -21,13 +23,12 @@
 #include <curl/curl.h>
 #include <json-c/json.h>
 
-// gcc client.c -o client -lncursesw -lpthread
 
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 12345
 #define BUFFER_SIZE 2048
 #define INPUT_BUFFER_SIZE 1024 // 오버플로 방지
-#define LOG_FILE "client.log"
+#define LOG_FILE "client.log" // 에러 및 디버그 체크용 로그파일일
 #define GPT_API_URL "https://api.openai.com/v1/chat/completions"
 //gpt api key 설정해야됨
 #define GPT_API_KEY "your-api-key-here" 
@@ -178,7 +179,7 @@ int game_score = 0;                  // 점수
 int game_level = 1;                  // 레벨
 int game_word_speed = 1;             // 단어 하강 속도
 int game_word_interval = 2;          // 단어 생성 간격 (프레임 수)
-int game_frame_delay = 1000000;      // 프레임 대기 시간 (500ms -> 500,000 us)
+int game_frame_delay = 1000000;      // 프레임 대기 시간
 
 // 동적 단어 데이터베이스 관련 변수
 char *dynamic_wordDB[MAX_DYNAMIC_WORDS] = {NULL};
@@ -193,13 +194,20 @@ int game_enter_position = 0;
 time_t game_start_time;
 
 // 게임 함수 선언
-void game_define_colors();
+void game_define_colors(); 
+// 색상 정의
+
 void game_init_player();
+// 플레이어 초기화
 void game_draw_player();
 void game_add_word();
+// 단어 추가    
 void game_update_words();
+// 단어 업데이트    
 void game_draw_words();
+// 단어 출력
 void game_word_Check(char *str);
+// 단어 확인    
 void game_handle_input();
 void game_cleanup();
 void game_end_game_handler(int signum);
@@ -211,7 +219,7 @@ int get_words_from_gpt(const char *topic);
 void free_dynamic_words();
 void load_dynamic_words(const char *topic);
 
-// 로그 기록 함수
+//  error check 용도 : 로그 기록 함수
 void log_event(const char *format, ...) {
     if (log_fp == NULL)
         return;
@@ -248,7 +256,6 @@ void *game_thread_func(void *arg) {
     pthread_mutex_unlock(&window_mutex);
 
     // 서버에 게임 종료 후 준비 완료 메시지 전송
-    // 원하지 않으면 주석 처리하거나 제거
     // char ready_msg[] = "/ready\n";
     // send_message_to_server(ready_msg);
     // log_event("서버에 READY 메시지 전송: %s", ready_msg);
@@ -442,7 +449,7 @@ void initialize_windows() {
     box(input_win, 0, 0);
     wbkgd(input_win, COLOR_PAIR(1)); // 배경색 설정
     mvwprintw(input_win, 1, 1, "입력: ");
-            mvwprintw(input_win, 2, 1, "사용 가능한 명령어는 /help를 입력하세요. /topic <주제>로 단어를 가져올 수 있습니다.");
+            mvwprintw(input_win, 2, 1, "사용 가능한 명령어는 /help를 입력하세요.");
     wrefresh(input_win);
 }
 
