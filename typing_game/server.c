@@ -295,15 +295,16 @@ void send_message(int socket_fd, const char *message) {
 void send_help_message(int socket_fd) {
     const char *help_msg =
         "사용 가능한 명령어:\n"
-        "/create_room <방 이름>       : 방을 생성합니다.\n"
-        "/join_room <방 ID>          : 방에 참여합니다.\n"
-        "/list                      : 방 목록을 조회합니다.\n"
+        "/create_room <방 이름>     : 방을 생성합니다.\n"
+        "/join_room <방 ID>        : 방에 참여합니다.\n"
+        "/list                     : 방 목록을 조회합니다.\n"
         "/chat <메시지>             : 채팅 메시지를 보냅니다.\n"
-        "/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)\n"
-        "/game_list                 : 사용 가능한 게임 모드를 조회합니다.\n"
-        "/ready                     : 게임 준비를 완료합니다.\n"
+        "/set_game <모드> <시간>    : 게임 설정을 변경합니다. (방장만 가능)\n"
+        "/game_list                : 사용 가능한 게임 모드를 조회합니다.\n"
+        "/ready                    : 게임 준비를 완료합니다.\n"
         "/topic <주제>              : GPT를 통해 주제에 맞는 단어를 가져옵니다.\n"
-        "/help                      : 도움말을 표시합니다.\n";
+        "/help                     : 도움말을 표시합니다.\n";
+        "<topic mode는 single player 모드에서 가능합니다>."
     send_message(socket_fd, help_msg);
     log_event("HELP 메시지 전송: %s", help_msg);
 }
