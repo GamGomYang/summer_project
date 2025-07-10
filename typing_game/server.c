@@ -273,8 +273,15 @@ void broadcast_message(const char *message, int room_id, int exclude_fd) {
 
 // 메시지 전송 함수
 void send_message(int socket_fd, const char *message) {
+    if (socket_fd < 0) {
+        return; // 유효하지 않은 소켓
+    }
+    
     if (send(socket_fd, message, strlen(message), 0) < 0) {
-        perror("메시지 전송 실패");
+        // 소켓이 이미 닫혔거나 오류가 발생한 경우 조용히 무시
+        if (errno != EBADF && errno != EPIPE && errno != ECONNRESET) {
+            perror("메시지 전송 실패");
+        }
     } else {
         // 로그 파일에 기록
         if (log_fp != NULL) {
@@ -366,14 +373,22 @@ void cleanup_server(int signum) {
     printf("\n서버 종료 시그널 수신. 클린업을 진행합니다...\n");
     log_event("서버 종료 시그널 수신. 클린업을 진행합니다...\n");
 
-    // 모든 사용자에게 서버 종료 메시지 전송
-    broadcast_message("SERVER_SHUTDOWN\n", -1, -1);
+    // 시그널 핸들러 중복 호출 방지
+    static int cleanup_in_progress = 0;
+    if (cleanup_in_progress) {
+        printf("클린업이 이미 진행 중입니다. 강제 종료합니다.\n");
+        exit(1);
+    }
+    cleanup_in_progress = 1;
 
-    // 모든 소켓 닫기
+    // 먼저 모든 소켓을 닫는다 (브로드캐스트 없이)
     pthread_mutex_lock(&user_mutex);
     User *current = user_head;
     while (current != NULL) {
-        close(current->socket_fd);
+        if (current->socket_fd >= 0) {
+            shutdown(current->socket_fd, SHUT_RDWR); // 소켓을 안전하게 닫기
+            close(current->socket_fd);
+        }
         current = current->next;
     }
     pthread_mutex_unlock(&user_mutex);
@@ -402,6 +417,7 @@ void cleanup_server(int signum) {
         room_current = room_current->next;
         free(temp_room);
     }
+    room_head = NULL; // 헤드 포인터 초기화
     pthread_mutex_unlock(&room_mutex);
 
     // 사용자 메모리 해제
@@ -412,11 +428,13 @@ void cleanup_server(int signum) {
         user_current = user_current->next;
         free(temp_user);
     }
+    user_head = NULL; // 헤드 포인터 초기화
     pthread_mutex_unlock(&user_mutex);
 
     // 로그 파일 닫기
     if (log_fp != NULL) {
         fclose(log_fp);
+        log_fp = NULL;
     }
 
     printf("서버가 정상적으로 종료되었습니다.\n");
@@ -969,10 +987,12 @@ void handle_gameover_all_clients(int sender_fd) {
              "GAME_OVER\n게임이 종료되었습니다. 최종승리자 : %s\n",
              sender->name);
 
-    // 모든 클라이언트에게 메시지 전송
+    // 모든 클라이언트에게 메시지 전송 (안전하게)
     User *current_user = user_head;
     while (current_user != NULL) {
-        send_message(current_user->socket_fd, gameover_message);
+        if (current_user->socket_fd >= 0) { // 유효한 소켓인지 확인
+            send_message(current_user->socket_fd, gameover_message);
+        }
         current_user = current_user->next;
     }
     pthread_mutex_unlock(&user_mutex);
