@@ -123,11 +123,9 @@ void init_boards() {
     }
 }
 void display_board(char board[GRID_SIZE][GRID_SIZE], int reveal, int start_y) {
-    // 박스 형태로 보드 출력, 행/열 번호 1부터 시작
-    int board_width = GRID_SIZE * 4 + 5; // 각 셀: | X | = 4칸, 좌측 여백 포함
-    int board_height = GRID_SIZE * 2 + 2; // 각 행: 셀+구분선, 헤더+구분선
+    int board_width = GRID_SIZE * 4 + 5;
+    int board_height = GRID_SIZE * 2 + 2;
 
-    // 화면 크기 검증
     if (COLS < board_width) {
         mvprintw(start_y, 0, "화면이 너무 작습니다. %d 만큼 크게 해주세요", board_width);
         refresh();
@@ -140,19 +138,19 @@ void display_board(char board[GRID_SIZE][GRID_SIZE], int reveal, int start_y) {
     }
 
     int start_x = (COLS - board_width) / 2;
-    if (start_x < 0) start_x = 0;
+    if (start_x < 0)
+        start_x = 0;
 
     attron(COLOR_PAIR(2));
 
     // 열 번호 (1~10)
-    mvprintw(start_y, start_x + 5, "");
     for (int i = 0; i < GRID_SIZE; i++) {
-        printw(" %2d ", i + 1);
+        mvprintw(start_y, start_x + 5 + i * 4, " %2d ", i + 1);
     }
     // 윗줄 구분선
     mvprintw(start_y + 1, start_x + 4, "+");
     for (int i = 0; i < GRID_SIZE; i++) {
-        printw("---+");
+        mvprintw(start_y + 1, start_x + 5 + i * 4 - 1, "---+");
     }
 
     // 각 행 출력
@@ -161,19 +159,20 @@ void display_board(char board[GRID_SIZE][GRID_SIZE], int reveal, int start_y) {
         mvprintw(start_y + 2 + i * 2, start_x, "%2d |", i + 1);
         for (int j = 0; j < GRID_SIZE; j++) {
             char c = board[i][j];
-            if (c == 'S' && !reveal) c = '~';
+            if (c == 'S' && !reveal)
+                c = '~';
             if (c == 'X') {
-                attron(COLOR_PAIR(2)); // 빨간색
-                printw(" %c |", c);
+                attron(COLOR_PAIR(2));
+                mvprintw(start_y + 2 + i * 2, start_x + 5 + j * 4, " %c |", c);
                 attroff(COLOR_PAIR(2));
             } else {
-                printw(" %c |", c);
+                mvprintw(start_y + 2 + i * 2, start_x + 5 + j * 4, " %c |", c);
             }
         }
         // 행 구분선
         mvprintw(start_y + 3 + i * 2, start_x + 4, "+");
         for (int k = 0; k < GRID_SIZE; k++) {
-            printw("---+");
+            mvprintw(start_y + 3 + i * 2, start_x + 5 + k * 4 - 1, "---+");
         }
     }
     attroff(COLOR_PAIR(2));
@@ -183,13 +182,20 @@ void display_board(char board[GRID_SIZE][GRID_SIZE], int reveal, int start_y) {
 void display_game_status() {
     clear();
 
-    int board_height = GRID_SIZE + 1; // 헤더 + 각 행
-    int gap = 2;                      // 두 보드 사이 간격을 3으로 증가
-    int total_height = board_height * 2 + gap;
+    // 보드 크기 계산 (각 보드의 실제 높이)
+    int board_width = GRID_SIZE * 4 + 5;           // 각 셀: | X | = 4칸, 좌측 여백 포함
+    int board_height = GRID_SIZE * 2 + 2;          // 각 행: 셀+구분선, 헤더+구분선
+    int gap = 2;                                   // 두 보드 사이 간격
+    int total_height = board_height * 2 + gap + 3; // 제목과 메시지 공간 포함
 
     // 화면 크기 검증
-    if (LINES < total_height + 2) {
-        mvprintw(LINES / 2, (COLS - 30) / 2, "화면이 너무 작아서 보드를 표시할 수 없습니다.");
+    if (COLS < board_width) {
+        mvprintw(LINES / 2, (COLS - 30) / 2, "화면이 너무 좁습니다. 최소 %d 열이 필요합니다.", board_width);
+        refresh();
+        return;
+    }
+    if (LINES < total_height) {
+        mvprintw(LINES / 2, (COLS - 30) / 2, "화면이 너무 작습니다. 최소 %d 줄이 필요합니다.", total_height);
         refresh();
         return;
     }
@@ -199,7 +205,7 @@ void display_game_status() {
     if (start_y < 0)
         start_y = 0;
     int player_board_y = start_y;
-    int enemy_board_y = start_y + board_height + gap;
+    int enemy_board_y = player_board_y + board_height + gap;
 
     // 제목 중앙 정렬
     int title1_x = (COLS - get_display_width("당신의 보드:")) / 2;
@@ -211,7 +217,7 @@ void display_game_status() {
     mvprintw(enemy_board_y, title2_x, "적의 보드:");
     display_board(enemy_board, 0, enemy_board_y + 1);
 
-    // 입력 안내 메시지 (보드 바로 아래)
+    // 안내 메시지는 항상 두 번째 보드 아래에만
     int msg_y = enemy_board_y + board_height + 1;
     if (msg_y < LINES - 1) {
         const char *msg = "공격 좌표를 입력하세요 (x y):";
@@ -223,8 +229,16 @@ void display_game_status() {
 }
 
 void display_error_message(const char *message) {
+    // 항상 두 번째 보드(적의 보드) 아래에만 에러 메시지 출력
+    int board_height = GRID_SIZE * 2 + 2;
+    int gap = 2;
+    int start_y = (LINES - (board_height * 2 + gap + 3)) / 2;
+    if (start_y < 0)
+        start_y = 0;
+    int enemy_board_y = start_y + board_height + gap;
+    int msg_y = enemy_board_y + board_height + 2; // 안내 메시지보다 한 줄 아래
     int mid_x = (COLS - strlen(message)) / 2;
-    mvprintw(4 * GRID_SIZE + 7, mid_x, "%s", message);
+    mvprintw(msg_y, mid_x, "%s", message);
     refresh();
 }
 
@@ -420,8 +434,8 @@ void ai_attack(char board[GRID_SIZE][GRID_SIZE], Ship ships[], int difficulty) {
 
     if (difficulty == 1) {
         do {
-            //난수 생성 좌표 공격
-            //include<time.h>
+            // 난수 생성 좌표 공격
+            // include<time.h>
             x = rand() % GRID_SIZE;
             y = rand() % GRID_SIZE;
             result = attack(x, y, board, ships);
@@ -1166,7 +1180,6 @@ void start_multiplayer() {
 }
 
 int main(int argc, char **argv) {
-
 
     // 한국어 로케일
     setlocale(LC_ALL, "");

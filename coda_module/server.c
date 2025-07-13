@@ -36,50 +36,44 @@ void *handle_client(void *arg) {
     client_sockets[player_id] = client_socket;
     char buffer[1024] = {0};
     int valread;
-    
-    //플레이어 대기(최대 2명)
+
+    // 플레이어 대기(최대 2명)
     pthread_mutex_lock(&lock);
     while (player_count < MAX_PLAYERS) {
         pthread_cond_wait(&cond, &lock);
     }
     pthread_mutex_unlock(&lock);
-    /*
-     * 함수: 플레이어 준비 상태 확인
-     * 설명: 클라이언트가 게임 참여를 수락했는지 확인
-     * 입력: 클라이언트 소켓을 통해 받은 메시지
-     * 출력: 준비 상태에 따른 처리
-     */
-    while (1) {
-        if (ready[player_id] == 0) {
-            //준비 상태 입력
-            send(client_socket, "게임에 참여하시겠습니까? (y/n): \n", strlen("게임에 참여하시겠습니까? (y/n): \n"), 0);
-            valread = read(client_socket, buffer, 1024);
-            if (valread > 0) {
-                buffer[valread] = '\0';
-                //레디 상태
-                if (buffer[0] == 'y' || buffer[0] == 'Y') {
-                    ready[player_id] = 1;
-                    send(client_socket, "다른 플레이어를 기다리는 중입니다...\n", strlen("다른 플레이어를 기다리는 중입니다...\n"), 0);
-                } else {
-                    //게임을 종료한 경우
-                    ready[player_id] = -1;
-                    send(client_socket, "게임을 거부하셨습니다. 연결을 종료합니다...\n", strlen("게임을 거부하셨습니다. 연결을 종료합니다...\n"), 0);
-                    //상대에게 게임이 종료되었다고 알림
-                    pthread_mutex_lock(&lock);
-                    int opponent_socket = client_sockets[1 - player_id];
-                    if (ready[1 - player_id] != -1) {
-                        send(opponent_socket, "상대 플레이어가 게임을 거부하여 연결을 종료합니다...\n", strlen("상대 플레이어가 게임을 거부하여 연결을 종료합니다...\n"), 0);
-                        close(opponent_socket);
-                    }
-                    pthread_mutex_unlock(&lock);
 
-                    close(client_socket);
-                    free(client_data);
-                    return NULL;
+    // 게임 참여 여부 확인
+    while (1) {
+        send(client_socket, "게임에 참여하시겠습니까? (y/n): \n", strlen("게임에 참여하시겠습니까? (y/n): \n"), 0);
+        valread = read(client_socket, buffer, 1024);
+        if (valread > 0) {
+            buffer[valread] = '\0';
+            // 레디 상태
+            if (buffer[0] == 'y' || buffer[0] == 'Y') {
+                ready[player_id] = 1;
+                send(client_socket, "다른 플레이어를 기다리는 중입니다...\n", strlen("다른 플레이어를 기다리는 중입니다...\n"), 0);
+            } else {
+                // 게임을 종료한 경우
+                ready[player_id] = -1;
+                send(client_socket, "게임을 거부하셨습니다. 연결을 종료합니다...\n", strlen("게임을 거부하셨습니다. 연결을 종료합니다...\n"), 0);
+                // 상대에게 게임이 종료되었다고 알림
+                pthread_mutex_lock(&lock);
+                int opponent_socket = client_sockets[1 - player_id];
+                if (ready[1 - player_id] != -1) {
+                    send(opponent_socket, "상대 플레이어가 게임을 거부하여 연결을 종료합니다...\n", strlen("상대 플레이어가 게임을 거부하여 연결을 종료합니다...\n"), 0);
+                    close(opponent_socket);
                 }
+                pthread_mutex_unlock(&lock);
+
+                close(client_socket);
+                free(client_data);
+                return NULL;
             }
         }
-        //플레이어 준비상태 확인
+
+        // 플레이어 준비상태 확인
         pthread_mutex_lock(&lock);
         if (ready[0] == 1 && ready[1] == 1) {
             pthread_cond_broadcast(&cond);
@@ -89,6 +83,7 @@ void *handle_client(void *arg) {
         if (ready[0] == -1 || ready[1] == -1) {
             pthread_mutex_unlock(&lock);
             close(client_socket);
+            free(client_data);
             return NULL;
         }
         pthread_mutex_unlock(&lock);
@@ -110,14 +105,13 @@ void *handle_client(void *arg) {
      * 입력: 클라이언트로부터 받은 메시지
      * 출력: 게임 상태에 따른 처리
      */
+    // 게임 진행 루프
     while (1) {
-        //플레이어 턴 제어
         pthread_mutex_lock(&lock);
-        while (current_turn != player_id) {
-            pthread_cond_wait(&cond, &lock);
-        }
+        int my_turn = (current_turn == player_id);
         pthread_mutex_unlock(&lock);
-        //상대 타일 정보를 알려줌
+
+        // 타일 정보 구성
         char tile_info[2048] = "상대의 타일: ";
         for (int i = 0; i < players[1 - player_id].num_tiles; i++) {
             if (players[1 - player_id].tiles[i].revealed) {
@@ -130,41 +124,52 @@ void *handle_client(void *arg) {
                 strcat(tile_info, tile);
             }
         }
-        //해당 플레이어의 타일 정보를 알려줌
         strcat(tile_info, "\n당신의 타일: ");
         for (int i = 0; i < players[player_id].num_tiles; i++) {
             char tile[10];
             sprintf(tile, "[%c%d] ", players[player_id].tiles[i].color, players[player_id].tiles[i].number);
             strcat(tile_info, tile);
         }
-        //턴 시작을 알림
-        strcat(tile_info, "\n당신의 턴입니다.\n");
-        send(client_socket, tile_info, strlen(tile_info), 0);
-        valread = read(client_socket, buffer, 1024);
-        if (valread > 0) {
+        if (my_turn) {
+            strcat(tile_info, "\n당신의 차례입니다.\n");
+            send(client_socket, tile_info, strlen(tile_info), 0);
+
+            // 입력 받기
+            int valread = read(client_socket, buffer, 1024);
+            if (valread <= 0) {
+                // 연결 종료 처리
+                pthread_mutex_lock(&lock);
+                int opponent_socket = client_sockets[1 - player_id];
+                send(opponent_socket, "상대 플레이어가 연결을 해제하여 게임을 종료합니다...\n", strlen("상대 플레이어가 연결을 해제하여 게임을 종료합니다...\n"), 0);
+                close(opponent_socket);
+                pthread_mutex_unlock(&lock);
+                close(client_socket);
+                free(client_data);
+                return NULL;
+            }
             buffer[valread] = '\0';
             printf("플레이어 %d: %s\n", player_id + 1, buffer);
-            //플레이어가 타일을 맞추는 부분
+
+            // 입력 파싱
             int guess_index, guess_number;
             char guess_color;
-            sscanf(buffer, "%d %c %d", &guess_index, &guess_color, &guess_number);
-            /*
-            * 상대 타일 맞추기
-            * 설명: 상대 타일 맞추기 성공 여부에 따른 행위
-            * 입력: 상대 플레이어, 타일위치, 색상, 숫자
-            * 출력: 성공 여부에 따른 출력 결과
-            */
+            if (sscanf(buffer, "%d %c %d", &guess_index, &guess_color, &guess_number) != 3) {
+                send(client_socket, "입력 형식이 올바르지 않습니다. 예: 1 B 5\n", strlen("입력 형식이 올바르지 않습니다. 예: 1 B 5\n"), 0);
+                continue;
+            }
+
             int result = guess_tile(&players[1 - player_id], guess_index, guess_color, guess_number);
             if (result) {
                 send(client_socket, "정답입니다!\n", strlen("정답입니다!\n"), 0);
-                //상대 타일을 전부 맞춘 경우
                 if (check_win(&players[1 - player_id])) {
                     send(client_socket, "게임 종료: 당신이 이겼습니다!\n", strlen("게임 종료: 당신이 이겼습니다!\n"), 0);
                     int opponent_socket = client_sockets[1 - player_id];
                     send(opponent_socket, "게임 종료: 당신이 졌습니다!\n", strlen("게임 종료: 당신이 졌습니다!\n"), 0);
-                    exit(1);
+                    close(client_socket);
+                    close(opponent_socket);
+                    free(client_data);
+                    return NULL;
                 }
-                //상대 타일을 맞추고 남은 상대 타일이 있는 경우
                 send(client_socket, "다시 추측하시겠습니까? (y/n): \n", strlen("다시 추측하시겠습니까? (y/n): \n"), 0);
                 valread = read(client_socket, buffer, 1024);
                 if (valread > 0 && (buffer[0] == 'n' || buffer[0] == 'N')) {
@@ -173,8 +178,7 @@ void *handle_client(void *arg) {
                     pthread_cond_broadcast(&cond);
                     pthread_mutex_unlock(&lock);
                 }
-            }// 상대 타일 맞추기를 실패한 경우 
-            else {
+            } else {
                 send(client_socket, "틀렸습니다. 새로운 타일을 뽑습니다.\n", strlen("틀렸습니다. 새로운 타일을 뽑습니다.\n"), 0);
                 draw_tile(&players[player_id]);
                 char draw_msg[100];
@@ -186,6 +190,10 @@ void *handle_client(void *arg) {
                 pthread_cond_broadcast(&cond);
                 pthread_mutex_unlock(&lock);
             }
+        } else {
+            strcat(tile_info, "\n상대방의 차례입니다. 잠시 기다려주세요.\n");
+            send(client_socket, tile_info, strlen(tile_info), 0);
+            sleep(1);
         }
     }
 }

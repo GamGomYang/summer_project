@@ -10,55 +10,39 @@
 WINDOW *output_win, *input_win;
 
 int main() {
-    // ·ÎÄÉÀÏ ¼³Á¤: ÇÁ·Î±×·¥ÀÌ ´Ù±¹¾î ¹®ÀÚ¸¦ Á¦´ë·Î Ã³¸®ÇÒ ¼ö ÀÖµµ·Ï ÇÔ
     setlocale(LC_ALL, "");
 
     int sock = 0;
     struct sockaddr_in serv_addr;
-    char buffer[1024] = {0};
-    /*
-     * ¼ÒÄÏ »ı¼º ¹× ¼³Á¤
-     * ¼³¸í: TCP ¼ÒÄÏÀ» »ı¼ºÇÏ°í ¼­¹ö ÁÖ¼Ò¿Í Æ÷Æ®¸¦ ¼³Á¤ÇÔ
-     * ÀÔ·Â: ¾øÀ½
-     * Ãâ·Â: ¼ÒÄÏ »ı¼º ¼º°ø ½Ã µğ½ºÅ©¸³ÅÍ ÀúÀå, ½ÇÆĞ ½Ã -1 ¹İÈ¯
-     */
+    char buffer[2048] = {0};
+
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        printf("\n¼ÒÄÏ »ı¼º ¿À·ù\n");
+        printf("\nì†Œì¼“ ìƒì„± ì‹¤íŒ¨\n");
         return -1;
     }
 
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
-    /*
-     * ¼­¹ö ÁÖ¼Ò º¯È¯
-     * ¼³¸í: ¹®ÀÚ¿­ ÇüÅÂÀÇ IP ÁÖ¼Ò¸¦ ³×Æ®¿öÅ© ¹ÙÀÌÆ® ¼ø¼­·Î º¯È¯
-     * ÀÔ·Â: ·ÎÄÃÈ£½ºÆ® ÁÖ¼Ò
-     * Ãâ·Â: º¯È¯ ¼º°ø ½Ã 0 ÀÌ»ó ¹İÈ¯, ½ÇÆĞ ½Ã -1 ¹İÈ¯
-     */
+
     if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-        printf("\nÀß¸øµÈ ÁÖ¼Ò/ ÁÖ¼Ò¸¦ Áö¿øÇÏÁö ¾ÊÀ½\n");
+        printf("\nì˜ëª»ëœ ì£¼ì†Œ/ ì£¼ì†Œë¥¼ ë³€í™˜í•  ìˆ˜ ì—†ìŒ\n");
         return -1;
     }
 
-    // ncurses ÃÊ±âÈ­
     initscr();
     start_color();
     init_pair(1, COLOR_RED, COLOR_BLACK);
     noecho();
     cbreak();
     keypad(stdscr, TRUE);
-    /*
-     * ¼­¹ö ¿¬°á ¿äÃ»
-     * ¼³¸í: ¼ÒÄÏÀ» ÅëÇØ ¼­¹ö¿Í ¿¬°áÀ» ½Ãµµ
-     * ÀÔ·Â: ¼­¹ö ÁÖ¼Ò¿Í Æ÷Æ® Á¤º¸
-     * Ãâ·Â: ¿¬°á ¼º°ø ½Ã 0 ¹İÈ¯, ½ÇÆĞ ½Ã -1 ¹İÈ¯
-     */
+
     if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         endwin();
-        perror("\n¿¬°á ½ÇÆĞ");
+        perror("\nì—°ê²° ì‹¤íŒ¨");
         return -1;
     }
-    //½ÃÀÛÈ­¸é Á¤ÀÇ
+
+    // íƒ€ì´í‹€í™”ë©´
     char *title_frames[] = {
         " _____             _        ",
         "/  __ \\           | |       ",
@@ -72,7 +56,6 @@ int main() {
 
     int frame_delay = 200;
     int i = 0;
-    //½ÃÀÛÈ­¸é Ãâ·Â
     while (title_frames[i]) {
         mvprintw(LINES / 2 - 4 + i, (COLS - strlen(title_frames[i])) / 2, "%s", title_frames[i]);
         refresh();
@@ -82,7 +65,7 @@ int main() {
 
     refresh();
     sleep(2);
-    //Ãâ·ÂÃ¢ ¹× ÀÔ·ÂÃ¢ ¼³Á¤
+
     int output_win_height = LINES - 5;
     int output_win_width = COLS;
     output_win = newwin(output_win_height, output_win_width, 0, 0);
@@ -96,24 +79,24 @@ int main() {
     box(input_win, 0, 0);
     wrefresh(output_win);
     wrefresh(input_win);
-    //È­¸é Áß¾Ó¿¡ ´ë±â ¹®±¸ Ãâ·Â
-    mvprintw(LINES / 2, (COLS - strlen("¼­¹ö°¡ ½ÃÀÛµÇ±â¸¦ ±â´Ù¸®´Â Áß...")) / 2, "¼­¹ö°¡ ½ÃÀÛµÇ±â¸¦ ±â´Ù¸®´Â Áß...");
+
+    mvprintw(LINES / 2, (COLS - strlen("ë‹¤ë¥¸ í”Œë ˆì´ì–´ê°€ ì ‘ì†í•˜ê¸°ë¥¼ ê¸°ë‹¤ë¦¬ëŠ” ì¤‘...")) / 2, "ë‹¤ë¥¸ í”Œë ˆì´ì–´ê°€ ì ‘ì†í•˜ê¸°ë¥¼ ê¸°ë‹¤ë¦¬ëŠ” ì¤‘...");
     refresh();
-    //¼­¹ö·ÎºÎÅÍ °ª ÀĞÀº ÈÄ Á¤º¸¿¡ µû¸¥ Ã³¸®
-    /*
-     * ¼­¹ö ÀÀ´ä Ã³¸® ·çÇÁ
-     * ¼³¸í: ¼­¹ö·ÎºÎÅÍ µ¥ÀÌÅÍ¸¦ ÀĞ°í Å¬¶óÀÌ¾ğÆ®¿¡ ¹İ¿µ
-     * ÀÔ·Â: ¼­¹ö·ÎºÎÅÍ ¹ŞÀº ¸Ş½ÃÁö
-     * Ãâ·Â: (ÇÊ¿äÇÑ °æ¿ì) »ç¿ëÀÚ ÀÔ·Â Ã³¸® ¹× ¼­¹ö·Î ¸Ş½ÃÁö Àü¼Û 
-     */
+
     while (1) {
-        int valread = read(sock, buffer, 1023);
+        int valread = read(sock, buffer, sizeof(buffer) - 1);
         if (valread > 0) {
             buffer[valread] = '\0';
-            //°ÔÀÓ ÁØºñ 
-            if (strstr(buffer, "°ÔÀÓ¿¡ Âü¿©ÇÏ½Ã°Ú½À´Ï±î?") != NULL) {
+
+            // í•­ìƒ ì „ì²´ ë©”ì‹œì§€ ì¶œë ¥
+            wclear(output_win);
+            mvwprintw(output_win, 1, 1, "%s", buffer);
+            wrefresh(output_win);
+
+            // ê²Œì„ ì°¸ì—¬ ì—¬ë¶€
+            if (strstr(buffer, "ê²Œì„ì— ì°¸ì—¬í•˜ì‹œê² ìŠµë‹ˆê¹Œ?") != NULL) {
                 char choice[3];
-                mvwprintw(input_win, 1, 1, "°ÔÀÓÀ» ¼ö¶ôÇÏ½Ã°Ú½À´Ï±î? (y/n): ");
+                mvwprintw(input_win, 1, 1, "ê²Œì„ì— ì°¸ì—¬í•˜ì‹œê² ìŠµë‹ˆê¹Œ? (y/n): ");
                 wrefresh(input_win);
                 echo();
                 wgetnstr(input_win, choice, sizeof(choice) - 1);
@@ -123,44 +106,18 @@ int main() {
                 box(input_win, 0, 0);
                 wrefresh(input_win);
             }
-            //½ÃÀÛ ´ë±â
-            if (strstr(buffer, "´Ù¸¥ ÇÃ·¹ÀÌ¾î¸¦ ±â´Ù¸®´Â ÁßÀÔ´Ï´Ù...") != NULL) {
-                wclear(output_win);
-                mvwprintw(output_win, 1, 1, "´Ù¸¥ ÇÃ·¹ÀÌ¾î°¡ ¼ö¶ôÀ» ±â´Ù¸®°í ÀÖ½À´Ï´Ù...");
-                wrefresh(output_win);
-            }
-            //»ó´ë¹æ °ÅÀı¿¡ ÀÇÇÑ °ÔÀÓ Á¾·á
-            if (strstr(buffer, "»ó´ë ÇÃ·¹ÀÌ¾î°¡ °ÔÀÓÀ» °ÅºÎÇÏ¿© ¿¬°áÀ» Á¾·áÇÕ´Ï´Ù...") != NULL) {
-                wclear(output_win);
-                mvwprintw(output_win, 1, 1, "´Ù¸¥ ÇÃ·¹ÀÌ¾î°¡ °ÅÀıÇß½À´Ï´Ù. °ÔÀÓ Á¾·á.");
-                wrefresh(output_win);
+            // ê²Œì„ ì¢…ë£Œ ë©”ì‹œì§€
+            else if (strstr(buffer, "ìƒëŒ€ í”Œë ˆì´ì–´ê°€ ì—°ê²°ì„ í•´ì œí•˜ì—¬ ê²Œì„ì„ ì¢…ë£Œí•©ë‹ˆë‹¤...") != NULL ||
+                     strstr(buffer, "ì—°ê²°ì„ í•´ì œí•˜ì…¨ìŠµë‹ˆë‹¤.") != NULL ||
+                     strstr(buffer, "ê²Œì„ì„ ê±°ë¶€í•˜ì…¨ìŠµë‹ˆë‹¤.") != NULL ||
+                     strstr(buffer, "ìƒëŒ€ í”Œë ˆì´ì–´ê°€ ê²Œì„ì„ ê±°ë¶€í•˜ì—¬ ì—°ê²°ì„ ì¢…ë£Œí•©ë‹ˆë‹¤...") != NULL) {
                 sleep(2);
                 break;
             }
-            //ÇÃ·¹ÀÌ¾î °ÅÀı¿¡ ÀÇÇÑ °ÔÀÓ Á¾·á
-            if (strstr(buffer, "°ÔÀÓÀ» °ÅºÎÇÏ¼Ì½À´Ï´Ù.") != NULL) {
-                wclear(output_win);
-                mvwprintw(output_win, 1, 1, "´ç½ÅÀÌ °ÔÀÓÀ» °ÅÀıÇß½À´Ï´Ù. °ÔÀÓ Á¾·á.");
-                wrefresh(output_win);
-                sleep(2);
-                break;
-            }
-            //°ÔÀÓ½ÃÀÛ
-            if (strstr(buffer, "°ÔÀÓ ½ÃÀÛ!") != NULL) {
-                wclear(output_win);
-                mvwprintw(output_win, 1, 1, "%s", buffer);
-                wrefresh(output_win);
-            }
-            //»ó´ë Å¸ÀÏ Á¤º¸ Ãâ·Â
-            if (strstr(buffer, "»ó´ëÀÇ Å¸ÀÏ:") != NULL) {
-                wclear(output_win);
-                mvwprintw(output_win, 1, 1, "%s", buffer);
-                wrefresh(output_win);
-            }
-            //ÇÃ·¹ÀÌ¾î Å¸ÀÏ Á¤º¸ Ãâ·Â
-            if (strstr(buffer, "´ç½ÅÀÇ ÅÏÀÔ´Ï´Ù.") != NULL) {
+            // ë‚´ í„´ ì•ˆë‚´ ë° íƒ€ì¼ ì •ë³´
+            else if (strstr(buffer, "ë‹¹ì‹ ì˜ ì°¨ë¡€ì…ë‹ˆë‹¤.") != NULL) {
                 char input[1024];
-                mvwprintw(input_win, 1, 1, "´ç½ÅÀÇ ÅÏÀÔ´Ï´Ù. ¿òÁ÷ÀÓÀ» ÀÔ·ÂÇÏ¼¼¿ä (ÀÎµ¦½º »ö»ó ¹øÈ£): ");
+                mvwprintw(input_win, 1, 1, "ë‹¹ì‹ ì˜ ì°¨ë¡€ì…ë‹ˆë‹¤. ì¢Œí‘œë¥¼ ì…ë ¥í•˜ì„¸ìš” (ì˜ˆ: 1 B 5): ");
                 wrefresh(input_win);
                 echo();
                 wgetnstr(input_win, input, sizeof(input) - 1);
@@ -170,10 +127,10 @@ int main() {
                 box(input_win, 0, 0);
                 wrefresh(input_win);
             }
-            //Å¸ÀÏÀ» ¸ÂÃá ÈÄ Å¸ÀÏ ´Ù½Ã ÃßÃø ¿©ºÎ
-            if (strstr(buffer, "´Ù½Ã ÃßÃøÇÏ½Ã°Ú½À´Ï±î?") != NULL) {
+            // ë‹¤ì‹œ ì¶”ì¸¡ ì—¬ë¶€
+            else if (strstr(buffer, "ë‹¤ì‹œ ì¶”ì¸¡í•˜ì‹œê² ìŠµë‹ˆê¹Œ?") != NULL) {
                 char choice[3];
-                mvwprintw(input_win, 1, 1, "´Ù½Ã ÃßÃøÇÏ½Ã°Ú½À´Ï±î? (y/n): ");
+                mvwprintw(input_win, 1, 1, "ë‹¤ì‹œ ì¶”ì¸¡í•˜ì‹œê² ìŠµë‹ˆê¹Œ? (y/n): ");
                 wrefresh(input_win);
                 echo();
                 wgetnstr(input_win, choice, sizeof(choice) - 1);
@@ -183,19 +140,11 @@ int main() {
                 box(input_win, 0, 0);
                 wrefresh(input_win);
             }
-            //°ÔÀÓ Á¾·á½Ã ½Â¸® ¹®±¸ Ãâ·Â
-            if (strstr(buffer, "°ÔÀÓ Á¾·á: ´ç½ÅÀÌ ÀÌ°å½À´Ï´Ù!") != NULL) {
-                wclear(output_win);
-                mvwprintw(output_win, LINES / 2, (COLS - strlen("´ç½ÅÀÌ ÀÌ°å½À´Ï´Ù!")) / 2, "´ç½ÅÀÌ ÀÌ°å½À´Ï´Ù!");
-                wrefresh(output_win);
+            // ìŠ¹ë¦¬/íŒ¨ë°° ë©”ì‹œì§€
+            else if (strstr(buffer, "ê²Œì„ ì¢…ë£Œ: ë‹¹ì‹ ì´ ì´ê²¼ìŠµë‹ˆë‹¤!") != NULL) {
                 sleep(3);
                 break;
-            }
-            //°ÔÀÓ Á¾·á½Ã ÆĞ¹è ¹®±¸ Ãâ·Â 
-            if (strstr(buffer, "°ÔÀÓ Á¾·á: ´ç½ÅÀÌ Á³½À´Ï´Ù!") != NULL) {
-                wclear(output_win);
-                mvwprintw(output_win, LINES / 2, (COLS - strlen("´ç½ÅÀÌ Á³½À´Ï´Ù.")) / 2, "´ç½ÅÀÌ Á³½À´Ï´Ù.");
-                wrefresh(output_win);
+            } else if (strstr(buffer, "ê²Œì„ ì¢…ë£Œ: ë‹¹ì‹ ì´ ì¡ŒìŠµë‹ˆë‹¤!") != NULL) {
                 sleep(3);
                 break;
             }

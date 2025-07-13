@@ -605,3 +605,131 @@ CHAT 메시지 브로드캐스트: CHAT kim
 가 연결을 종료했습니다.
 서버 종료 시그널 수신. 클린업을 진행합니다...
 서버 종료 시그널 수신. 클린업을 진행합니다...
+서버가 포트 12345에서 리슨 중입니다...
+새로운 연결: 소켓 FD 5
+사용자 이름 수신: kim
+ (소켓 FD 5)
+메시지 전송: WELCOME kim
+
+환영 메시지 전송: WELCOME kim
+
+받은 메시지 from kim
+: /help
+명령어: /help
+메시지 전송: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/help                      : 도움말을 표시합니다.
+HELP 메시지 전송: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/help                      : 도움말을 표시합니다.
+HELP 메시지 전송
+받은 메시지 from kim
+: /create_room <room1>
+명령어: /create_room, 방 이름: <room1>
+방 생성: ID=1, 이름=<room1>, 호스트=kim
+
+메시지 전송: ROOM_CREATED 1 <room1>
+방 생성 메시지 전송: ROOM_CREATED 1 <room1>
+사용자 kim
+가 방 ID 1에 참여했습니다.
+USER_JOINED 메시지 브로드캐스트: USER_JOINED kim
+
+받은 메시지 from kim
+: /ready
+사용자 kim
+가 READY 상태 (1/1)
+메시지 전송: GAME_STARTED
+GAME_STARTED 메시지 브로드캐스트: GAME_STARTED
+메시지 전송: GAME_STARTED
+GAME_STARTED 메시지 브로드캐스트: GAME_STARTED
+받은 메시지 from kim
+: /chat f
+명령어: /chat, 메시지: f
+메시지 전송: CHAT kim
+: f
+CHAT 메시지 브로드캐스트: CHAT kim
+: f
+사용자 kim
+가 연결을 종료했습니다.
+서버 종료 시그널 수신. 클린업을 진행합니다...
+서버 종료 시그널 수신. 클린업을 진행합니다...
+서버가 포트 12345에서 리슨 중입니다...
+새로운 연결: 소켓 FD 5
+사용자 이름 수신: kim
+ (소켓 FD 5)
+메시지 전송: WELCOME kim
+
+환영 메시지 전송: WELCOME kim
+
+받은 메시지 from kim
+: /help
+명령어: /help
+메시지 전송: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/help                      : 도움말을 표시합니다.
+HELP 메시지 전송: 사용 가능한 명령어:
+/create_room <방 이름>       : 방을 생성합니다.
+/join_room <방 ID>          : 방에 참여합니다.
+/list                      : 방 목록을 조회합니다.
+/chat <메시지>             : 채팅 메시지를 보냅니다.
+/set_game <모드> <시간>      : 게임 설정을 변경합니다. (방장만 가능)
+/game_list                 : 사용 가능한 게임 모드를 조회합니다.
+/ready                     : 게임 준비를 완료합니다.
+/help                      : 도움말을 표시합니다.
+HELP 메시지 전송
+받은 메시지 from kim
+: /create_room <room1>
+명령어: /create_room, 방 이름: <room1>
+방 생성: ID=1, 이름=<room1>, 호스트=kim
+
+메시지 전송: ROOM_CREATED 1 <room1>
+방 생성 메시지 전송: ROOM_CREATED 1 <room1>
+사용자 kim
+가 방 ID 1에 참여했습니다.
+USER_JOINED 메시지 브로드캐스트: USER_JOINED kim
+
+받은 메시지 from kim
+: /list
+명령어: /list
+메시지 전송: 현재 방 목록:
+방 ID: 1, 방 이름: <room1>, 게임 모드: 기본모드, 시간 제한: 90초
+방 목록 전송: 현재 방 목록:
+방 ID: 1, 방 이름: <room1>, 게임 모드: 기본모드, 시간 제한: 90초
+방 목록 전송
+받은 메시지 from kim
+: /ready
+사용자 kim
+가 READY 상태 (1/1)
+메시지 전송: GAME_STARTED
+GAME_STARTED 메시지 브로드캐스트: GAME_STARTED
+메시지 전송: GAME_STARTED
+GAME_STARTED 메시지 브로드캐스트: GAME_STARTED
+받은 메시지 from kim
+: /chat d
+명령어: /chat, 메시지: d
+메시지 전송: CHAT kim
+: d
+CHAT 메시지 브로드캐스트: CHAT kim
+: d
+사용자 kim
+가 연결을 종료했습니다.
+서버 종료 시그널 수신. 클린업을 진행합니다...
+서버 종료 시그널 수신. 클린업을 진행합니다...

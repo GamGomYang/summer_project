@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -finput-charset=UTF-8 -fexec-charset=UTF-8
 LDFLAGS_SERVER = -lpthread
 LDFLAGS_CLIENT = -lncursesw
 
